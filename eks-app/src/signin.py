@@ -1,8 +1,7 @@
 import re
-import bcrypt  # 💡 암호화 라이브러리 추가
+import bcrypt
 from fastapi import APIRouter, Form
-from sqlalchemy import text
-from database import engine
+from src.database import user_table
 
 router = APIRouter(prefix="/api/member")
 
@@ -26,35 +25,25 @@ def register(
     try:
         formatted_phone = format_phone_number(phone)
         
-        # 💡 비밀번호 해싱 처리 (평문 비밀번호를 암호화)
-        # 1. 비밀번호를 바이트 문자열로 인코딩
-        # 2. 임의의 Salt를 생성하여 해싱
-        # 3. DB 저장을 위해 다시 일반 문자열(utf-8)로 디코딩
+        # 1. 비밀번호 해싱 (bcrypt)
         hashed_password = bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
 
-        with engine.connect() as conn:
-            check_sql = text("SELECT user_id FROM user WHERE user_id = :user_id")
-            existing = conn.execute(check_sql, {"user_id": user_id}).fetchone()
-
-            if existing:
-                return {"status": "fail", "message": "이미 존재하는 아이디입니다."}
-
-            insert_sql = text("""
-                INSERT INTO user (user_id, password, user_name, phone, addr, email) 
-                VALUES (:user_id, :password, :user_name, :phone, :addr, :email)
-            """)
-            
-            conn.execute(insert_sql, {
-                "user_id": user_id, 
-                "password": hashed_password,  # 💡 평문 password 대신 암호화된 변수 삽입
-                "user_name": user_name, 
-                "phone": formatted_phone,
-                "addr": addr, 
-                "email": email
-            })
-            conn.commit() 
-            return {"status": "success", "message": "가입되었습니다"}
+        # 2. DynamoDB put_item (ConditionExpression을 사용하여 중복 체크)
+        try:
+            user_table.put_item(
+                Item={
+                    'user_id': user_id,
+                    'password': hashed_password,
+                    'user_name': user_name,
+                    'phone': formatted_phone,
+                    'addr': addr,
+                    'email': email
+                },
+                ConditionExpression='attribute_not_exists(user_id)' # 아이디가 존재하지 않을 때만 성공
+            )
+            return {"status": "success", "message": "성공적으로 가입되었습니다!"}
+        except user_table.meta.client.exceptions.ConditionalCheckFailedException:
+            return {"status": "fail", "message": "이미 존재하는 아이디입니다."}
 
     except Exception as e:
-        print(f"DB Error: {e}") 
-        return {"status": "fail", "message": "가입에 실패하였습니다"}
+        return {"status": "fail", "message": f"가입 중 오류 발생: {str(e)}"}

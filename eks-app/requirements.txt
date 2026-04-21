@@ -1,11 +1,9 @@
 fastapi
 uvicorn
 requests
-sqlalchemy
-pymysql
+boto3
 redis
 aioredis
-requests
 httpx
 pydantic
 python-multipart

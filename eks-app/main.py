@@ -1,12 +1,14 @@
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
-from sqlalchemy import text
 import json
 import time
+import os
 
-# [설정] DB와 Redis 연결은 database.py에서 통합 관리합니다.
-from src.database import engine, rd
+# [설정] DB(DynamoDB)와 Redis 연결은 database.py에서 통합 관리합니다.
+from src.database import dynamodb, reservation_table, user_table, seat_table, rd
+from boto3.dynamodb.conditions import Key
 
 # [보안] 이중 방어용 커스텀 보안 미들웨어
 from src.security import SecurityFilterMiddleware
@@ -27,17 +29,12 @@ app.mount("/static", StaticFiles(directory="static"), name="static")
 app.add_middleware(SecurityFilterMiddleware)
 
 # 2️⃣ 바깥쪽 껍질: CORS 미들웨어 (FastAPI는 나중에 추가한 게 먼저 실행됨)
-# 이렇게 해야 브라우저의 OPTIONS 요청을 CORS가 먼저 안전하게 처리해줍니다.
 origins = [
-    "http://www.pulseticket.store:30007",
-    "https://www.pulseticket.store",  
-    "https://pulseticket.store",      
-    "http://www.pulseticket.store",
-    "http://10.4.0.203",           
-    "https://10.4.0.203",
-    "http://10.4.0.201", 
-    "http://10.4.0.150:30007",
-    "http://10.4.0.150"
+    "https://www.plusticket.store",
+    "https://plusticket.store",
+    "http://www.plusticket.store",
+    "http://plusticket.store",
+    "http://localhost:3000",
 ]
 
 app.add_middleware(
@@ -61,18 +58,18 @@ app.include_router(reservation.router, prefix="/api/reservations")
 
 @app.get("/")
 async def root():
-    return {"message": "Welcome to the Integrated Ticketing System! 🚀 (서버 정상 작동 중)"}
+    return {"message": "Welcome to the Integrated Ticketing System (DynamoDB)! 🚀"}
 
 @app.get("/db-test")
 def db_test():
     try:
-        with engine.connect() as conn:
-            result = conn.execute(text("SELECT 1"))
-            return {"status": "success", "db_result": "Connected to MySQL/MariaDB!"}
+        # 간단한 테이블 조회를 통해 DynamoDB 연결 확인
+        reservation_table.scan(Limit=1)
+        return {"status": "success", "message": "Connected to AWS DynamoDB!"}
     except Exception as e:
         return {"status": "error", "message": str(e)}
 
-# ✨ 대기열 관리자 API
+# ✨ 대기열 관리자 API (기존 Redis 로직 유지)
 @app.post("/next")
 def allow_next_users(count: int = 10): 
     try:
@@ -92,49 +89,39 @@ def allow_next_users(count: int = 10):
     except Exception as e:
         return {"status": "error", "message": f"대기열 이동 중 오류 발생: {str(e)}"}
 
-# ✨ 예약 내역 조회 API
+# ✨ 예약 내역 조회 API (DynamoDB)
 @app.get("/api/reservations/{user_id}")
 def get_user_reservations(user_id: str):
     try:
-        with engine.connect() as conn:
-            query = text("""
-                SELECT
-                    res_id, user_id, seat_id, seat_num, perf_id, perf_title,
-                    DATE_FORMAT(select_date, '%Y-%m-%d') as select_date,
-                    TIME_FORMAT(select_time, '%H:%i:%s') as select_time,
-                    place, price,
-                    DATE_FORMAT(res_date, '%Y-%m-%d %H:%i:%s') as res_date
-                FROM reservation
-                WHERE user_id = :uid
-                ORDER BY res_date DESC
-            """)
-            result = conn.execute(query, {"uid": user_id}).mappings().all()
-            return [dict(row) for row in result]
+        # user_id가 파티션 키이거나 GSI로 설정되어 있어야 합니다.
+        response = reservation_table.query(
+            KeyConditionExpression=Key('user_id').eq(user_id)
+        )
+        return response.get('Items', [])
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"DB 조회 중 오류 발생: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"DynamoDB 조회 중 오류 발생: {str(e)}")
 
-# ✨ 빈 좌석 조회 API
+# ✨ 빈 좌석 조회 API (DynamoDB)
 @app.get("/seats")
 def get_seats():
     try:
-        with engine.connect() as conn:
-            query = text("SELECT seat_id, seat_num FROM seat WHERE status = 'AVAILABLE'")
-            result = conn.execute(query)
-            seats = [{"seat_id": row[0], "seat_num": row[1]} for row in result]
-            return {"available_seats": seats}
+        # 'status'가 'AVAILABLE'인 좌석 조회
+        response = seat_table.scan(
+            FilterExpression="status = :status",
+            ExpressionAttributeValues={":status": "AVAILABLE"}
+        )
+        return {"available_seats": response.get('Items', [])}
     except Exception as e:
         return {"status": "error", "message": str(e)}
 
-# ✨ 단일 유저 조회 API
+# ✨ 단일 유저 조회 API (DynamoDB)
 @app.get("/users/{user_id}")
 def get_user(user_id: str):
     try:
-        with engine.connect() as conn:
-            query = text("SELECT user_id, user_name, user_phone FROM user WHERE user_id = :user_id")
-            result = conn.execute(query, {"user_id": user_id}).fetchone()
-            if result:
-                return {"user_id": result[0], "user_name": result[1], "user_phone": result[2]}
-            return {"error": "User not found"}
+        response = user_table.get_item(Key={'user_id': user_id})
+        item = response.get('Item')
+        if item:
+            return item
+        return {"error": "User not found"}
     except Exception as e:
         return {"status": "error", "message": str(e)}
-#----

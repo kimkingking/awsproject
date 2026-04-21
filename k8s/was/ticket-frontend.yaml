@@ -32,16 +32,21 @@ apiVersion: v1
 kind: Service
 metadata:
   name: ticket-frontend-svc
+  annotations:
+    # AWS Load Balancer Controller가 NLB를 생성하도록 지정
+    service.beta.kubernetes.io/aws-load-balancer-type: nlb
+    service.beta.kubernetes.io/aws-load-balancer-scheme: internet-facing
+    # API Gateway VPC Link와 연결 시 클라이언트 IP 유지를 위해 설정
+    service.beta.kubernetes.io/aws-load-balancer-proxy-protocol: "*"
 spec:
-  type: NodePort # 외부 브라우저에서 접속할 수 있도록 개방
+  type: LoadBalancer
   selector:
     app: ticket-frontend
   ports:
   - name: http
     port: 80
     targetPort: 80
-    nodePort: 30007 # HTTP 접속 포트
   - name: https
     port: 443
     targetPort: 443
-    nodePort: 30443 # HTTPS 접속 포트
+  externalTrafficPolicy: Local

@@ -12,14 +12,15 @@ spec:
       labels:
         app: ticket-backend
     spec:
+      serviceAccountName: ticket-backend-sa
       containers:
       - name: python-backend
         # 💡 새로 만든 1.06 버전 명시 (경로 문제가 해결된 버전)
         image: kingking4105/ticketing-was:latest
         imagePullPolicy: Always
         env:
-        - name: DB_HOST
-          value: "mysql" # DB 파드와 통신하기 위한 호스트명
+        - name: AWS_REGION
+          value: "ap-northeast-2" # 사용 중인 AWS 리전으로 변경 가능
         - name: TURNSTILE_SECRET_KEY
           valueFrom:
             secretKeyRef:
