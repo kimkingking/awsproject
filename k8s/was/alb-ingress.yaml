@@ -1,0 +1,62 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: ticketing-alb-ingress
+  annotations:
+    # 💡 AWS Load Balancer Controller가 ALB를 생성하도록 지정
+    kubernetes.io/ingress.class: alb
+    alb.ingress.kubernetes.io/scheme: internet-facing
+    alb.ingress.kubernetes.io/target-type: ip # Pod IP로 직접 통신 (가장 빠름)
+    alb.ingress.kubernetes.io/listen-ports: '[{"HTTP": 80}]'
+    # SSL(HTTPS) 인증서가 있다면 주석을 해제하고 ARN을 넣으세요.
+    # alb.ingress.kubernetes.io/certificate-arn: arn:aws:acm:ap-northeast-2:857281493476:certificate/...
+spec:
+  rules:
+    - host: www.plusticket.store
+      http:
+        paths:
+          # 1. 백엔드 API 라우팅 (경로가 /api, /next, /db-test 등일 때)
+          - path: /api
+            pathType: Prefix
+            backend:
+              service:
+                name: ticket-backend-svc
+                port:
+                  number: 8000
+          - path: /next
+            pathType: Prefix
+            backend:
+              service:
+                name: ticket-backend-svc
+                port:
+                  number: 8000
+          - path: /db-test
+            pathType: Prefix
+            backend:
+              service:
+                name: ticket-backend-svc
+                port:
+                  number: 8000
+          - path: /seats
+            pathType: Prefix
+            backend:
+              service:
+                name: ticket-backend-svc
+                port:
+                  number: 8000
+          - path: /users
+            pathType: Prefix
+            backend:
+              service:
+                name: ticket-backend-svc
+                port:
+                  number: 8000
+          # 2. 나머지는 모두 프론트엔드로 (웹사이트 화면)
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: ticket-frontend-svc
+                port:
+                  number: 80
+---
