@@ -1,0 +1,13 @@
+fastapi
+uvicorn
+requests
+sqlalchemy
+pymysql
+redis
+aioredis
+requests
+httpx
+pydantic
+python-multipart
+cryptography
+bcrypt
