@@ -1,18 +1,20 @@
-from sqlalchemy import Column, Integer, String, Date, Time, DateTime
-from sqlalchemy.sql import func
-from database import Base # 기존에 설정하신 Base 객체 임포트
+"""
+[DynamoDB Schema Definition]
+이 프로젝트는 더 이상 SQLAlchemy(MySQL)를 사용하지 않고 DynamoDB를 사용합니다.
+아래는 DynamoDB 테이블의 논리적 구조입니다.
 
-class Reservation(Base):
-    __tablename__ = 'reservation' # 실제 생성된 테이블 이름으로 변경하세요
+1. Table: Reservation
+   - Partition Key (Hash): res_id (String, e.g., "RES#timestamp#userid")
+   - Sort Key (Range): user_id (String)
+   - Attributes: seat_num, perf_id, perf_title, select_date, select_time, place, price, res_date
 
-    res_id = Column(Integer, primary_key=True, autoincrement=True)
-    user_id = Column(String(20), nullable=False)
-    seat_id = Column(Integer, nullable=False)
-    perf_id = Column(String(20), nullable=False)
-    perf_title = Column(String(100), nullable=False)
-    select_date = Column(Date, nullable=False)
-    select_time = Column(Time, nullable=False)
-    place = Column(String(150), nullable=False)
-    price = Column(Integer, nullable=False)
-    # res_date는 DB에서 CURRENT_TIMESTAMP로 자동 생성되게 하거나 아래처럼 서버시간 기준으로 설정
-    res_date = Column(DateTime, server_default=func.now())
+2. Table: User
+   - Partition Key (Hash): user_id (String)
+   - Attributes: password, user_name, phone, addr, email
+
+3. Table: Seat
+   - Partition Key (Hash): seat_id (String, e.g., "perfId#date#time#seatNum")
+   - Attributes: status ('AVAILABLE', 'OCCUPIED'), seat_num, perf_id, perf_date, perf_time
+"""
+# 💡 DynamoDB는 스키마리스(Schemaless)이므로 별도의 Class 정의 없이 
+#    boto3를 통해 바로 딕셔너리 형태로 데이터를 읽고 씁니다.
