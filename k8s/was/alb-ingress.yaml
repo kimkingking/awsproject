@@ -2,6 +2,7 @@ apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   name: ticketing-alb-ingress
+  namespace: ticketing
   annotations:
     # 💡 AWS Load Balancer Controller가 ALB를 생성하도록 지정
     kubernetes.io/ingress.class: alb

@@ -2,6 +2,7 @@ apiVersion: autoscaling/v2
 kind: HorizontalPodAutoscaler
 metadata:
   name: ticket-backend-deploy
+  namespace: ticketing
 spec:
   scaleTargetRef:
     apiVersion: apps/v1
