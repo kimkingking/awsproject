@@ -1,3 +1,4 @@
+# ECR 테스트
 FROM public.ecr.aws/docker/library/python:3.10-slim
 WORKDIR /app
 COPY eks-app/requirements.txt .
