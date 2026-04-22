@@ -1,0 +1,8 @@
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: ticket-backend-sa
+  annotations:
+    # 💡 실제 생성하신 IAM Role의 ARN으로 변경해야 합니다.
+    eks.amazonaws.com/role-arn: arn:aws:iam::857281493476:role/EKS-DynamoDB-Role
+---
