@@ -15,7 +15,7 @@ rd = redis.Redis(
 # AWS 환경(EKS/Lambda)에서는 IAM Role을 사용하므로 별도의 액세스 키 입력 없이 리소스만 정의합니다.
 dynamodb = boto3.resource(
     'dynamodb', 
-    region_name=os.getenv("AWS_REGION", "ap-northeast-2")
+    region_name='ap-northeast-2'
 )
 
 # 공통으로 사용할 테이블 객체 (테이블명이 'ticket'인 경우)
