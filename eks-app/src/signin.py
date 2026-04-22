@@ -1,7 +1,8 @@
 import re
 import bcrypt
 from fastapi import APIRouter, Form
-from src.database import user_table
+from botocore.exceptions import ClientError
+from database import table
 
 router = APIRouter(prefix="/api/member")
 
@@ -24,26 +25,32 @@ def register(
 ):
     try:
         formatted_phone = format_phone_number(phone)
-        
-        # 1. 비밀번호 해싱 (bcrypt)
-        hashed_password = bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
 
-        # 2. DynamoDB put_item (ConditionExpression을 사용하여 중복 체크)
-        try:
-            user_table.put_item(
-                Item={
-                    'user_id': user_id,
-                    'password': hashed_password,
-                    'user_name': user_name,
-                    'phone': formatted_phone,
-                    'addr': addr,
-                    'email': email
-                },
-                ConditionExpression='attribute_not_exists(user_id)' # 아이디가 존재하지 않을 때만 성공
-            )
-            return {"status": "success", "message": "성공적으로 가입되었습니다!"}
-        except user_table.meta.client.exceptions.ConditionalCheckFailedException:
+        hashed_password = bcrypt.hashpw(
+            password.encode('utf-8'),
+            bcrypt.gensalt()
+        ).decode('utf-8')
+
+        table.put_item(
+            Item={
+                "PK": f"USER#{user_id}",
+                "SK": "METADATA",
+                "user_id": user_id,
+                "password": hashed_password,
+                "user_name": user_name,
+                "phone": formatted_phone,
+                "addr": addr,
+                "email": email,
+                "type": "USER"
+            },
+            ConditionExpression="attribute_not_exists(PK) AND attribute_not_exists(SK)"
+        )
+
+        return {"status": "success", "message": "가입되었습니다"}
+
+    except ClientError as e:
+        if e.response['Error']['Code'] == 'ConditionalCheckFailedException':
             return {"status": "fail", "message": "이미 존재하는 아이디입니다."}
 
-    except Exception as e:
-        return {"status": "fail", "message": f"가입 중 오류 발생: {str(e)}"}
+        print(f"DynamoDB Error: {e}")
+        return {"status": "fail", "message": "가입 실패"}

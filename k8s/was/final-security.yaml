@@ -2,7 +2,7 @@ apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   name: ip-access-ingress
-  namespace : ticketing
+  namespace: ticketing
   annotations:
     kubernetes.io/ingress.class: nginx
     # 핵심: 사용자가 /api/로 들어오면, 파이썬한테는 / 로 전달해라!

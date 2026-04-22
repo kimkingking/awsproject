@@ -1,0 +1,58 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: ticketing-alb-ingress
+  namespace: ticketing
+  annotations:
+    alb.ingress.kubernetes.io/scheme: internet-facing
+    alb.ingress.kubernetes.io/target-type: ip
+    alb.ingress.kubernetes.io/listen-ports: '[{"HTTP": 80}]'
+spec:
+  ingressClassName: alb
+  rules:
+  - http:
+      paths:
+      # 1. 백엔드 API 라우팅
+      - path: /api
+        pathType: Prefix
+        backend:
+          service:
+            name: ticket-backend-svc
+            port:
+              number: 8000
+      - path: /next
+        pathType: Prefix
+        backend:
+          service:
+            name: ticket-backend-svc
+            port:
+              number: 8000
+      - path: /db-test
+        pathType: Prefix
+        backend:
+          service:
+            name: ticket-backend-svc
+            port:
+              number: 8000
+      - path: /seats
+        pathType: Prefix
+        backend:
+          service:
+            name: ticket-backend-svc
+            port:
+              number: 8000
+      - path: /users
+        pathType: Prefix
+        backend:
+          service:
+            name: ticket-backend-svc
+            port:
+              number: 8000
+      # 2. 나머지는 모두 프론트엔드로 (웹사이트 화면)
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: ticket-frontend-svc
+            port:
+              number: 80
