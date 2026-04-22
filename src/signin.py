@@ -24,7 +24,6 @@ def register(
     email: str = Form(...)
 ):
     try:
-        # 로그추가
         print("REGISTER INPUT:", user_id, password, user_name, phone, addr, email)
         formatted_phone = format_phone_number(phone)
 
