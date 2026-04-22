@@ -22,11 +22,6 @@ spec:
         env:
         - name: AWS_REGION
           value: "ap-northeast-2" # 사용 중인 AWS 리전으로 변경 가능
-        - name: TURNSTILE_SECRET_KEY
-          valueFrom:
-            secretKeyRef:
-              name: captcha-secret
-              key: turnstile-key
         ports:
         - containerPort: 8000 # 파이썬 서버 포트
         resources:
