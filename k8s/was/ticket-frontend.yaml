@@ -2,6 +2,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: ticket-frontend-deploy
+  namespace: ticketing
 spec:
   replicas: 2
   selector:
@@ -14,7 +15,7 @@ spec:
     spec:
       containers:
       - name: nginx-frontend
-        # 💡 새로 만든 1.06 버전 명시 (403 Forbidden 해결된 버전)
+        # 💡 프론트엔드 전용 이미지로 변경
         image: leeseonghoon234/ticket-web:latest
         imagePullPolicy: Always
         ports:
@@ -32,14 +33,9 @@ apiVersion: v1
 kind: Service
 metadata:
   name: ticket-frontend-svc
-  annotations:
-    # AWS Load Balancer Controller가 NLB를 생성하도록 지정
-    service.beta.kubernetes.io/aws-load-balancer-type: nlb
-    service.beta.kubernetes.io/aws-load-balancer-scheme: internet-facing
-    # API Gateway VPC Link와 연결 시 클라이언트 IP 유지를 위해 설정
-    service.beta.kubernetes.io/aws-load-balancer-proxy-protocol: "*"
+  namespace: ticketing
 spec:
-  type: LoadBalancer
+  type: NodePort
   selector:
     app: ticket-frontend
   ports:
@@ -49,4 +45,3 @@ spec:
   - name: https
     port: 443
     targetPort: 443
-  externalTrafficPolicy: Local
