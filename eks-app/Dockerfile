@@ -1,5 +1,6 @@
 # ECR 테스트
-# ECR 테스트 09:58분 PUSH!
+# ECR 테스트 10:17분 PUSH!
+
 FROM public.ecr.aws/docker/library/python:3.10-slim
 WORKDIR /app
 COPY requirements.txt .
