@@ -21,11 +21,11 @@ spec:
         env:
         - name: AWS_REGION
           value: "ap-northeast-2"
-            # - name: TURNSTILE_SECRET_KEY
-            # valueFrom:
-            # secretKeyRef:
-            # name: captcha-secret
-            # key: turnstile-key
+        - name: TURNSTILE_SECRET_KEY
+          valueFrom:
+            secretKeyRef:
+              name: captcha-secret
+              key: turnstile-key
         ports:
         - containerPort: 8000
         resources:
