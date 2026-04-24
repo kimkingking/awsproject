@@ -5,7 +5,7 @@ import boto3
 import requests
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
-from database import rd
+from src.database import rd
 from boto3.dynamodb.conditions import Key
 
 # [설정] 환경변수 및 AWS 설정
