@@ -5,7 +5,7 @@ import boto3
 import requests
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
-from src.database import rd
+from src.database import rd, table
 from boto3.dynamodb.conditions import Key
 
 # [설정] 환경변수 및 AWS 설정
@@ -18,8 +18,6 @@ if not TURNSTILE_SECRET_KEY:
 
 # AWS 클라이언트 및 리소스 초기화
 sqs = boto3.client('sqs', region_name='ap-northeast-2')
-dynamodb = boto3.resource('dynamodb', region_name='ap-northeast-2')
-table = dynamodb.Table('ticket')
 
 router = APIRouter()
 
