@@ -16,7 +16,7 @@ spec:
       containers:
       - name: nginx-frontend
         # 💡 프론트엔드 전용 이미지로 변경
-        image: leeseonghoon234/ticket-web:latest
+        image: REPLACEMENT_IMAGE
         imagePullPolicy: Always
         ports:
         - containerPort: 80
