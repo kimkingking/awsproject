@@ -2,7 +2,7 @@ import re
 import bcrypt
 from fastapi import APIRouter, Form
 from botocore.exceptions import ClientError
-from database import table
+from src.database import table
 
 router = APIRouter(prefix="/api/member")
 

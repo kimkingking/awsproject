@@ -1,6 +1,6 @@
 import bcrypt
 from fastapi import APIRouter, Form, Response
-from database import table  # 👈 핵심 (여기만 쓰면 됨)
+from src.database import table  # 👈 핵심 (여기만 쓰면 됨)
 
 router = APIRouter(prefix="/api/member")
 
