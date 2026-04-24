@@ -21,11 +21,17 @@ def login(
         )
 
         user_data = res.get("Item")
+        
+        print(f"--- DEBUG START ---")
+        print(f"조회된 데이터: {user_data}")
 
         if user_data:
             db_password = user_data.get("password", "")
             user_name = user_data.get("user_name")
             email = user_data.get("email")
+            
+            print(f"입력 비밀번호: {password}")
+            print(f"DB 비밀번호: {db_password}")
 
             if db_password and bcrypt.checkpw(
                 password.encode("utf-8"),
