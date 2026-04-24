@@ -25,14 +25,14 @@ router = APIRouter()
 
 # [데이터 모델] 동일하게 유지
 class PreCheckRequest(BaseModel):
-    user_id: str
+    u_id: str
     perf_id: str
     select_date: str
     select_time: str
     turnstile_token: str = "" 
 
 class ReservationRequest(BaseModel):
-    user_id: str
+    u_id: str
     seat_num: str       
     perf_id: str
     perf_title: str
@@ -86,11 +86,11 @@ def get_reserved_seats(perf_id: str):
 @router.post("/reserve")
 def reserve_precheck(req: PreCheckRequest):
     try:
-        is_allowed = rd.sismember("allowed_users", req.user_id)
+        is_allowed = rd.sismember("allowed_users", req.u_id)
         if not is_allowed:
             now = time.time()
-            rd.zadd("ticket_queue", {req.user_id: now}, nx=True)
-            rank = rd.zrank("ticket_queue", req.user_id) + 1
+            rd.zadd("ticket_queue", {req.u_id: now}, nx=True)
+            rank = rd.zrank("ticket_queue", req.u_id) + 1
             return {"status": "wait", "message": "아직 예매 순서가 아닙니다.", "waiting_number": rank}
 
         return {"status": "success", "message": "검증 완료. 좌석 선택으로 이동합니다."}
@@ -115,11 +115,11 @@ def confirm_reservation(req: ReservationRequest):
             QueueUrl=SQS_QUEUE_URL,
             MessageBody=json.dumps(message_body, ensure_ascii=False),
             MessageGroupId=f"{req.perf_id}_{req.seat_num}",
-            MessageDeduplicationId=f"{req.user_id}_{req.perf_id}_{req.seat_num}"
+            MessageDeduplicationId=f"{req.u_id}_{req.perf_id}_{req.seat_num}"
         )
 
         # 3. Redis 권한 제거
-        rd.srem("allowed_users", req.user_id)
+        rd.srem("allowed_users", req.u_id)
 
         return {
             "status": "success", 
