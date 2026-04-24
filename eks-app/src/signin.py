@@ -33,8 +33,8 @@ def register(
 
         table.put_item(
             Item={
-                "PK": f"USER#{user_id}",
-                "SK": "METADATA",
+                "PK": f"USER#{userI_id}",
+                "SK": "PROFILE",
                 "user_id": user_id,
                 "password": hashed_password,
                 "user_name": user_name,
