@@ -7,15 +7,15 @@ router = APIRouter(prefix="/api/member")
 @router.post("/login")
 def login(
     response: Response,
-    user_id: str = Form(...),
-    password: str = Form(...)
+    u_id: str = Form(...),
+    u_pass: str = Form(...)
 ):
 
     try:
         # DynamoDB 조회
         res = table.get_item(
             Key={
-                "PK": f"USER#{user_id}",
+                "PK": f"USER#{u_id}",
                 "SK": "PROFILE"
             }
         )
@@ -30,11 +30,11 @@ def login(
             user_name = user_data.get("user_name")
             email = user_data.get("email")
             
-            print(f"입력 비밀번호: {password}")
+            print(f"입력 비밀번호: {u_pass}")
             print(f"DB 비밀번호: {db_password}")
 
             if db_password and bcrypt.checkpw(
-                password.encode("utf-8"),
+                u_pass.encode("utf-8"),
                 db_password.encode("utf-8")
             ):
             
