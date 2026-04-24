@@ -31,10 +31,10 @@ app.add_middleware(SecurityFilterMiddleware)
 
 # 2️⃣ 바깥쪽 껍질: CORS 미들웨어 (기존 도메인 모두 포함)
 origins = [
-    "https://www.plusticket.store",
-    "https://plusticket.store",
-    "http://www.plusticket.store",
-    "http://plusticket.store",
+    "https://www.pluseticket.store",
+    "https://pluseticket.store",
+    "http://www.pluseticket.store",
+    "http://pluseticket.store",
     "https://www.pulseticket.ke",
     "https://pulseticket.ke",
     "http://localhost:3000",
