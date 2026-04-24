@@ -16,7 +16,7 @@ spec:
       serviceAccountName: ticket-backend-sa
       containers:
       - name: python-backend
-        image: kingking4105/ticketing-was:latest
+        image: REPLACEMENT_IMAGE
         imagePullPolicy: Always
         env:
         - name: AWS_REGION
