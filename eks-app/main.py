@@ -52,7 +52,7 @@ app.add_middleware(
 # [라우터 등록]
 # ==========================================
 app.include_router(login.router)
-app.include_router(signing.router) # 회원가입
+app.include_router(signin.router) # 회원가입
 app.include_router(reservation.router, prefix="/api/reservations")
 
 # ==========================================
