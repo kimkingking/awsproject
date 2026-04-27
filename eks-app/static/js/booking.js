@@ -122,12 +122,21 @@ async function processReservation() {
         turnstile_token: "JETER_TEST_TOKEN"                 // ✅ token
     };
 
+    console.log("전송 페이로드:", payload);
+
     try {
         const response = await fetch(`/api/reservations/confirm`, { 
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(payload)
         });
+        
+        console.log("응답 상태 코드:", response.status); // 403 확인용
+
+        if (!response.ok) {
+            const errorDetail = await response.text();
+            console.error("에러 상세 내용:", errorDetail);
+        }
         
         const result = await response.json();
         
