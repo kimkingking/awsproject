@@ -21,6 +21,8 @@ spec:
         env:
         - name: AWS_REGION
           value: "ap-northeast-2"
+        - name: DYNAMODB_TABLE_NAME
+          value: "ticket"
         - name: TURNSTILE_SECRET_KEY
           valueFrom:
             secretKeyRef:

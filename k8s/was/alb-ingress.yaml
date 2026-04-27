@@ -13,7 +13,7 @@ metadata:
 spec:
   ingressClassName: alb
   rules:
-  - host: pluseticket.store
+  - host: 
     http:
       paths:
       - path: /api
