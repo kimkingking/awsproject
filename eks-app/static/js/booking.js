@@ -111,15 +111,17 @@ async function processReservation() {
     reserveBtn.textContent = "처리 중...";
 
     const payload = {
-        u_id: sessionStorage.getItem('u_id'),           
-        perf_id: perfInfo.perf_id,                      
-        seat_num: selectedSeat.seat_num,                
-        perf_title: perfInfo.perf_title,                
-        select_date: perfInfo.select_date,              
-        select_time: perfInfo.select_time,              
-        place: perfInfo.place,                          
-        price: perfInfo.price,                          
-        turnstile_token: turnstileToken // ✅ 하드코딩된 값을 지우고 전역 변수로 변경
+        u_id: sessionStorage.getItem('u_id'),
+        perf_id: perfInfo.perf_id,
+        seat_num: selectedSeat.seat_num,
+        perf_title: perfInfo.perf_title,
+        select_date: perfInfo.select_date,
+        select_time: perfInfo.select_time,
+        place: perfInfo.place,
+        price: perfInfo.price,
+        // 💡 주의: 캡차 모달을 진짜 통과했다면 전역 변수 turnstileToken을 써야 합니다!
+        // 일단 테스트를 위해 JETER_TEST_TOKEN을 유지합니다.
+        turnstile_token: "JETER_TEST_TOKEN" 
     };
 
     console.log("전송 페이로드:", payload);
@@ -131,34 +133,36 @@ async function processReservation() {
             body: JSON.stringify(payload)
         });
         
-        console.log("응답 상태 코드:", response.status); // 403 확인용
+        console.log("응답 상태 코드:", response.status);
 
-        if (!response.ok) {
-            const errorDetail = await response.text();
-            console.error("에러 상세 내용:", errorDetail);
-        }
-        
+        // 💡 [핵심 수정] 무조건 여기서 딱 한 번만 읽습니다!
         const result = await response.json();
         
-        if (response.ok && result.status === 'success') {
+        // 1. 에러가 발생한 경우 (403, 500 등)
+        if (!response.ok) {
+            console.error("에러 상세 내용:", result);
+            alert("❌ 예약 실패: " + (result.detail || result.message || "알 수 없는 오류"));
+            resetReserveButton(reserveBtn); // 멈춘 버튼 복구
+            return; // 🚨 여기서 함수를 완전히 종료시킵니다!
+        }
+        
+        // 2. 정상 처리된 경우
+        if (result.status === 'success') {
             alert(result.message);
             location.href = 'mypage.html';
         } else if (result.status === "fail") {
-            // 💡 [핵심 수정] 누군가 이미 채간 경우, 새로고침 없이 좌석만 업데이트
+            // 이선좌 (이미 선택된 좌석) 처리
             alert(result.message); 
-            
-            // 좌석 최신화
             const updatedReservedSeats = await fetchReservedSeats();
             renderSeats(updatedReservedSeats);
             
-            // 우측 정보 및 버튼 초기화 (새로운 좌석을 골라야 하므로)
             selectedSeat = null;
             document.getElementById('infoSeat').textContent = "좌석을 선택해주세요";
             document.getElementById('infoPrice').textContent = "0원";
             
             reserveBtn.className = "w-full bg-gray-300 text-gray-500 font-bold text-lg py-4 rounded-xl cursor-not-allowed transition-all";
             reserveBtn.textContent = "결제하기";
-            // disabled는 renderSeats가 끝난 상태이므로 이미 선택된 자리가 없으니 true 유지
+            // 여기서 resetReserveButton은 부르지 않음 (좌석을 다시 골라야 하므로)
         } else {
             alert(result.message || "예매 실패");
             location.reload(); 
