@@ -21,7 +21,7 @@ sqs = boto3.client('sqs', region_name='ap-northeast-2')
 
 router = APIRouter()
 
-# [데이터 모델] 동일하게 유지
+# [데이터 모델] 동일하게 유지!
 class PreCheckRequest(BaseModel):
     u_id: str
     perf_id: str
