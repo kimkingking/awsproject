@@ -27,18 +27,18 @@ class PreCheckRequest(BaseModel):
     perf_id: str
     select_date: str
     select_time: str
-    turnstile_token: str = "" 
+    turnstile_token: str = ""
 
 class ReservationRequest(BaseModel):
     u_id: str
-    seat_num: str       
+    seat_num: str
     perf_id: str
     perf_title: str
     select_date: str
     select_time: str
     place: str
     price: int
-    turnstile_token: str = "" 
+    turnstile_token: str = ""
 
 # [보조 함수] 캡차 검증 동일
 def verify_turnstile_sync(token: str) -> bool:
@@ -61,19 +61,19 @@ def get_reserved_seats(perf_id: str):
     try:
         # DynamoDB에서 해당 공연의 모든 좌석 정보를 가져옵니다.
         response = table.query(
-            KeyConditionExpression=Key("PK").eq(f"PERF#{perf_id}") & 
+            KeyConditionExpression=Key("PK").eq(f"PERF#{perf_id}") &
                                    Key("SK").begins_with("SEAT#")
         )
-        
+
         items = response.get("Items", [])
-        
+
         # 'status'가 'OCCUPIED'인 데이터만 골라서 좌석 번호(SK의 뒷부분) 리스트 생성
         reserved_seats = [
-            item['SK'].replace("SEAT#", "") 
-            for item in items 
+            item['SK'].replace("SEAT#", "")
+            for item in items
             if item.get('status') == 'OCCUPIED'
         ]
-        
+
         return {"status": "success", "reserved_seats": reserved_seats}
     except Exception as e:
         return {"status": "error", "message": f"좌석 조회 실패: {str(e)}"}
@@ -101,27 +101,39 @@ def reserve_precheck(req: PreCheckRequest):
 @router.post("/confirm")
 def confirm_reservation(req: ReservationRequest):
     try:
-        # 1. 캡차 검증
+        # 1. 캡차 검증 (인덴트 확인: if문 밖으로 나와야 함)
         is_test_mode = (DEBUG_MODE and req.turnstile_token in ["", "JETER_TEST_TOKEN"])
         if not is_test_mode:
             if not verify_turnstile_sync(req.turnstile_token):
                 raise HTTPException(status_code=403, detail="캡차 검증 실패")
-
-        # 2. SQS 메시지 전송
-        message_body = req.dict()
+                
+        # 2. SQS 메시지 전송용 데이터 가공 (람다와 키값 맞추기)
+        message_payload = {
+            "user_id": req.u_id,          # 람다 body.get('user_id') 대응
+            "perf_id": req.perf_id,        # 람다 body.get('perf_id') 대응
+            "seat_num": req.seat_num,
+            "perf_title": req.perf_title,
+            "price": req.price,
+            "place": req.place
+        }
+        
+        # 3. SQS 메시지 전송 (message_payload를 전송함)
         sqs.send_message(
             QueueUrl=SQS_QUEUE_URL,
-            MessageBody=json.dumps(message_body, ensure_ascii=False),
+            MessageBody=json.dumps(message_payload, ensure_ascii=False),
             MessageGroupId=f"{req.perf_id}_{req.seat_num}",
             MessageDeduplicationId=f"{req.u_id}_{req.perf_id}_{req.seat_num}"
         )
 
-        # 3. Redis 권한 제거
+        # 4. Redis 권한 제거
         rd.srem("allowed_users", req.u_id)
 
         return {
-            "status": "success", 
+            "status": "success",
             "message": "🎉 예매 요청이 접수되었습니다! 잠시 후 내 예약 목록을 확인해주세요."
         }
     except Exception as e:
+        # 이미 발생한 HTTPException은 그대로 던지고, 그 외 에러만 500으로 처리
+        if isinstance(e, HTTPException):
+            raise e
         raise HTTPException(status_code=500, detail=f"서버 오류: {str(e)}")
