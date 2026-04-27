@@ -111,15 +111,15 @@ async function processReservation() {
     reserveBtn.textContent = "처리 중...";
 
     const payload = {
-        user_id: sessionStorage.getItem('u_id'),
-        seat_num: selectedSeat.seat_num, 
-        perf_id: perfInfo.perf_id,
-        perf_title: perfInfo.perf_title,
-        select_date: perfInfo.select_date,
-        select_time: perfInfo.select_time,
-        place: perfInfo.place,
-        price: perfInfo.price,
-        turnstile_token: turnstileToken 
+        u_id: sessionStorage.getItem('u_id'),           // ✅ u_id (포스트맨 성공 기준)
+        perf_id: perfInfo.perf_id,                      // ✅ perf_id
+        seat_num: selectedSeat.seat_num,                // ✅ 람다가 기다리는 seat_num
+        perf_title: perfInfo.perf_title,                // ✅ perf_title
+        select_date: perfInfo.select_date,              // 👈 u_date가 아니라 select_date!
+        select_time: perfInfo.select_time,              // 👈 u_time이 아니라 select_time!
+        place: perfInfo.place,                          // ✅ place
+        price: perfInfo.price,                          // ✅ price (이미 parseInt 되어 있음)
+        turnstile_token: turnstileToken                 // ✅ token
     };
 
     try {
