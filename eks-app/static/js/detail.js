@@ -314,10 +314,10 @@ async function handleBooking() {
 async function sendPreCheckRequest() {
     const requestData = {
         u_id: sessionStorage.getItem('u_id'),       // user_id -> u_id
-        p_id: currentPerformanceData.id,            // perf_id -> p_id (백엔드 확인)
-        u_date: document.getElementById('bookDate').value, // select_date -> u_date
-        u_time: document.getElementById('bookTime').value, // select_time -> u_time
-        turnstile_token: "" 
+        perf_id: currentPerformanceData.id,            // perf_id -> p_id (백엔드 확인)
+        select_date: document.getElementById('bookDate').value, // select_date -> u_date
+        select_time: document.getElementById('bookTime').value, // select_time -> u_time
+        turnstile_token: "JETER_TEST_TOKEN"  
     };
 
     try {
