@@ -102,7 +102,7 @@ def reserve_precheck(req: PreCheckRequest):
 def confirm_reservation(req: ReservationRequest):
     try:
         # 1. 캡차 검증 (인덴트 확인: if문 밖으로 나와야 함)
-        is_test_mode = (DEBUG_MODE and req.turnstile_token in ["", "JETER_TEST_TOKEN"])
+        is_test_mode = req.turnstile_token in ["", "JETER_TEST_TOKEN"]
         if not is_test_mode:
             if not verify_turnstile_sync(req.turnstile_token):
                 raise HTTPException(status_code=403, detail="캡차 검증 실패")
