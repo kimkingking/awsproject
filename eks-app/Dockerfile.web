@@ -1,0 +1,21 @@
+# Dockerfile.web
+FROM nginx:alpine
+
+# 1. nginx.conf와 default.conf가 없으므로 관련 설정 복사 줄은 삭제했습니다.
+# Nginx 기본 설정을 그대로 사용합니다.
+
+# 2. 기존 Nginx 기본 웹 파일 삭제
+RUN rm -rf /usr/share/nginx/html/*
+
+# 3. HTML 파일 복사 (templates/html 폴더 안의 내용물을 루트로)
+COPY templates/html/ /usr/share/nginx/html/
+
+# 4. 정적 파일 복사 (static 폴더를 통째로 복사)
+# 이렇게 하면 컨테이너 내 경로가 /usr/share/nginx/html/static/ 이 됩니다.
+COPY static/ /usr/share/nginx/html/static/
+
+# 5. 권한 부여
+RUN chmod -R 755 /usr/share/nginx/html
+
+EXPOSE 80
+CMD ["nginx", "-g", "daemon off;"]
