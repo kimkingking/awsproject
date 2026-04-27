@@ -119,7 +119,7 @@ async function processReservation() {
         select_time: perfInfo.select_time,              // 👈 u_time이 아니라 select_time!
         place: perfInfo.place,                          // ✅ place
         price: perfInfo.price,                          // ✅ price (이미 parseInt 되어 있음)
-        turnstile_token: turnstileToken                 // ✅ token
+        turnstile_token: "JETER_TEST_TOKEN"                 // ✅ token
     };
 
     try {
