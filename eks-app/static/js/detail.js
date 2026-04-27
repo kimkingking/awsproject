@@ -313,11 +313,10 @@ async function handleBooking() {
 
 async function sendPreCheckRequest() {
     const requestData = {
-        user_id: sessionStorage.getItem('u_id'),
-        perf_id: currentPerformanceData.id,
-        select_date: document.getElementById('bookDate').value,
-        select_time: document.getElementById('bookTime').value,
-        // 💡 422 에러 차단: 백엔드가 캡차 토큰을 빈칸으로라도 받을 수 있게 처리
+        u_id: sessionStorage.getItem('u_id'),       // user_id -> u_id
+        p_id: currentPerformanceData.id,            // perf_id -> p_id (백엔드 확인)
+        u_date: document.getElementById('bookDate').value, // select_date -> u_date
+        u_time: document.getElementById('bookTime').value, // select_time -> u_time
         turnstile_token: "" 
     };
 
