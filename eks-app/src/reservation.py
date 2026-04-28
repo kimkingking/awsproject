@@ -114,7 +114,9 @@ def confirm_reservation(req: ReservationRequest):
             "seat_num": req.seat_num,
             "perf_title": req.perf_title,
             "price": req.price,
-            "place": req.place
+            "place": req.place,
+            "select_date": req.select_date,
+            "select_time": req.select_time
         }
         
         # 3. SQS 메시지 전송 (message_payload를 전송함)
