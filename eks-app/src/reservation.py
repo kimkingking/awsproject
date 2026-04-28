@@ -96,7 +96,7 @@ def reserve_precheck(req: PreCheckRequest):
         return {"status": "error", "message": str(e)}
 
 # ==========================================
-# [API 2] 최종 예매 진행 (SQS 전송)
+# [API 2] 최종 예매 진행 (SQS로 전송)
 # ==========================================
 @router.post("/confirm")
 def confirm_reservation(req: ReservationRequest):
