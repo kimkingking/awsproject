@@ -1,0 +1,11 @@
+fastapi
+uvicorn
+requests
+boto3
+redis
+aioredis
+httpx
+pydantic
+python-multipart
+cryptography
+bcrypt
